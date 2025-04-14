@@ -1,0 +1,49 @@
+# Node.js standard files
+node_modules
+npm-debug.log
+pnpm-debug.log
+yarn-error.log
+.yarn/*
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+
+# TypeScript files
+*.ts
+!tsconfig.json  # Keep the TypeScript configuration file if necessary
+
+# Environment variables
+.env
+.env.*  # For several environment files such as .env.production
+
+# Logs
+*.log
+logs/
+*.pid
+*.seed
+*.gz
+
+# VCS (Version Control System)
+.git
+.gitignore
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# Docker-related files
+Dockerfile.*
+docker-compose.*
+*.iml
+
+# Miscellaneous
+*.cache
