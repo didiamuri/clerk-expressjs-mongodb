@@ -2,7 +2,7 @@ import User from "@src/models/User";
 import {UserJSON} from "@clerk/backend";
 import logger from "@src/utils/logger";
 
-export class UsersService {
+export class UserService {
   static async store(data: UserJSON, accountId: string, role?: string) {
         try {
             const status = data.locked ? "locked" : data.banned ? "banned" : "active";

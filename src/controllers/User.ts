@@ -1,7 +1,7 @@
 import {clerkClient} from '@clerk/express';
 import {HttpContext} from "@src/types/HttpContext";
 
-export class UsersController {
+export class UserController {
     async index({res}: HttpContext) {
 
         const users = await clerkClient.users.getUserList();

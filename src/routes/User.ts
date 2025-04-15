@@ -1,10 +1,10 @@
 import express from 'express';
 import {bodyParser} from "@src/middlewares";
 import {routeHandler} from "@src/utils/routeHandler";
-import {UsersController} from '@src/controllers/UsersController'
+import {UserController} from '@src/controllers/User'
 
 const router = express.Router();
-const usersController = new UsersController();
+const usersController = new UserController();
 
 router.get('/', ...bodyParser, routeHandler(usersController, 'index'));
 router.post('/', ...bodyParser, routeHandler(usersController, 'store'));

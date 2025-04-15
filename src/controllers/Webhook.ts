@@ -4,7 +4,7 @@ import {HttpContext} from "@src/types/HttpContext";
 import {verifyWebhook} from "@clerk/express/webhooks";
 import {clerkClient} from "@clerk/express";
 import {generateAccountId} from "@src/utils/generateUniqueAccountId";
-import {UsersService} from "@src/services/UsersService";
+import {UserService} from "@src/services/User";
 
 export class WebhookController {
     async index({req, res, next}: HttpContext) {
@@ -17,7 +17,7 @@ export class WebhookController {
                 const initialRole = 'member';
                 const accountId = await generateAccountId();
 
-                await UsersService.store(evt.data, accountId, initialRole);
+                await UserService.store(evt.data, accountId, initialRole);
 
                 await clerkClient.users.updateUserMetadata(evt.data.id, {
                     publicMetadata: {
