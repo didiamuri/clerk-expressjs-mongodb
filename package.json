@@ -15,6 +15,7 @@
   "dependencies": {
     "@clerk/backend": "^1.28.0",
     "@clerk/express": "^1.4.4",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
@@ -22,6 +23,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.6.1",
     "mongoose": "^8.13.2",
+    "nanoid": "^5.1.5",
     "rate-limiter-flexible": "^7.0.0",
     "svix": "^1.64.0",
     "ts-node": "^10.9.2",
@@ -30,6 +32,7 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/jest": "^29.5.14",

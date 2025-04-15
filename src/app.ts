@@ -26,8 +26,6 @@ const PORT = normalizePort(process.env.PORT || '3001');
 
         app.use(clerkMiddleware());
         app.use(helmet());
-        app.use(express.json());
-        app.use(express.urlencoded({extended: true}));
         app.use(cors);
         app.use(rateLimiter);
 

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import express from "express";
 import logger from "@src/utils/logger";
+import {bodyParser} from "@src/middlewares";
 import {format, formatDistanceToNow} from "date-fns";
 
 const routesDir = path.join(__dirname);
@@ -11,7 +12,7 @@ export async function initRouter(): Promise<express.Router> {
     const router = express.Router();
 
     // Health check route
-    router.get("/health", (_req, res) => {
+    router.get("/health", ...bodyParser, (_req, res) => {
         logger.info("Health check OK", {label: "Health"});
         res.status(200).json({
             status: "running...",
