@@ -5,7 +5,7 @@ import {WebhookController} from "@src/controllers/Webhook";
 const router = express.Router();
 const webhookController = new WebhookController();
 
-router.post('/users', express.raw({type: 'application/json'}), routeHandler(webhookController, 'index'));
+router.post('/clerk', express.raw({type: 'application/json'}), routeHandler(webhookController, 'index'));
 
 export default {
     prefix: '/webhooks',

@@ -22,7 +22,7 @@ const schema = new mongoose.Schema<User>({
     legalAcceptedAt: {type: Date, default: null},
     lastSignInAt: {type: Date, default: null},
     lastActiveAt: {type: Date, default: null},
-    status: {type: String, required: true, enum: ['active', 'locked', 'banned'], default: 'active', index: true},
+    status: {type: String, required: true, enum: ['active', 'locked', 'banned', 'deleted'], default: 'active', index: true},
 }, {
     timestamps: true
 });
