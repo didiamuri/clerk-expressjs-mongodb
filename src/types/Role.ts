@@ -3,4 +3,6 @@ export interface Role {
     name: string;
     key: string;
     permissions: Array<string>;
+    createdAt: Date;
+    updatedAt: Date;
 }

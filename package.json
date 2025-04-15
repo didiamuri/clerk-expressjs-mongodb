@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/backend": "^1.28.0",
     "@clerk/express": "^1.4.4",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
@@ -22,6 +23,7 @@
     "ioredis": "^5.6.1",
     "mongoose": "^8.13.2",
     "rate-limiter-flexible": "^7.0.0",
+    "svix": "^1.64.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "winston": "^3.17.0",

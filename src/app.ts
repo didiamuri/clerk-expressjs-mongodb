@@ -8,6 +8,7 @@ import {normalizePort} from "@src/utils";
 import {connectMongodb} from '@src/configs';
 import {clerkMiddleware} from '@clerk/express'
 import {badUrl, cors, errorHandler, rateLimiter} from '@src/middlewares';
+import {initCollections} from "@src/models";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ const PORT = normalizePort(process.env.PORT || '3001');
 (async () => {
     try {
         await connectMongodb();
+        await initCollections();
 
         app.set('trust proxy', true);
         app.set('port', PORT);
