@@ -1,68 +1,60 @@
 import logger from "@src/utils/logger";
-import {AppError} from "@src/utils";
 import {HttpContext} from "@src/types/HttpContext";
 import {verifyWebhook} from "@clerk/express/webhooks";
-import {clerkClient} from "@clerk/express";
 import {generateAccountId} from "@src/utils/generateUniqueAccountId";
 import {UserService} from "@src/services/User";
+import {safeUpdateMetadata} from "@src/utils/clerk/safeUpdateMetadata";
+import {ensureUserExistsOnClerk} from "@src/utils/clerk/ensureUserExistsOnClerk";
+import {AppError, generateEventId, isDuplicateEvent, markEventProcessed, Respond} from "@src/utils";
 
 export class WebhookController {
-    async index({req, res, next}: HttpContext) {
+    async user({req, res, next}: HttpContext) {
         try {
             const evt = await verifyWebhook(req);
-            const {id} = evt.data;
+            const eventId = generateEventId(evt);
+            const { id: clerkId } = evt.data;
 
-            if (evt.type === 'user.created') {
-                const initialRole = 'member';
-                const accountId = await generateAccountId();
-                const newUser =  await UserService.store(evt.data, accountId.toLowerCase(), initialRole);
-
-                await clerkClient.users.updateUserMetadata(evt.data.id, {
-                    publicMetadata: {
-                        accountId: accountId,
-                        role: initialRole
-                    },
-                    privateMetadata: {
-                        _id: newUser._id.toString(),
-                    }
-                });
-
-                return res.status(200).json({
-                    status: 'success',
-                    message: 'Webhook received successfully.',
-                });
+            if (await isDuplicateEvent(eventId)) {
+                logger.warn(`Duplicate webhook event ignored: ${eventId}`, { label: 'Webhook' });
+                return res.status(200).json({ status: 'ignored', message: 'Duplicate event.' });
             }
-            if (evt.type === 'user.updated') {
+
+            if (evt.type === 'user.created' || evt.type === 'user.updated') {
+                const exists = await ensureUserExistsOnClerk(clerkId);
+                if (!exists) {
+                    logger.warn(`User ${clerkId} doesn't exist on Clerk. Skipping.`, {label: 'Clerk Webhook'});
+                    return res.status(200).json({ status: 'skipped' });
+                }
+
                 const role = evt.data.public_metadata?.role ?? 'member';
                 const newAccountId = await generateAccountId();
-                const accountId = evt.data.public_metadata?.accountId ?? newAccountId.toString();
+                const accountId = evt.data.public_metadata?.accountId ?? newAccountId;
 
-                const user = await UserService.update(evt.data, accountId as string, role as string);
+                const user =
+                    evt.type === 'user.created'
+                        ? await UserService.store(evt.data, (accountId as string).toLowerCase(), role as string)
+                        : await UserService.update(evt.data, (accountId as string).toLowerCase(), role as string);
 
-                const clerkUser = await clerkClient.users.getUser(evt.data.id);
-
-                const currentPublic = clerkUser.publicMetadata || {};
-                const currentPrivate = clerkUser.privateMetadata || {};
-
-                if (currentPublic.accountId !== accountId || currentPublic.role !== role || currentPrivate._id !== user._id.toString()) {
-                    await clerkClient.users.updateUserMetadata(evt.data.id, {
-                        publicMetadata: {
-                            accountId: accountId,
-                            role: role
-                        },
-                        privateMetadata: {
-                            _id: user._id.toString(),
-                        }
-                    });
-                }
-                return res.status(200).json({
-                    status: 'success',
-                    message: 'Webhook received successfully.',
+                await safeUpdateMetadata(clerkId, {accountId, role,}, {
+                    _id: user._id.toString(),
                 });
+
+                await markEventProcessed(eventId, evt.type);
+
+                logger.info(`User ${clerkId} ${evt.type === 'user.created' ? 'created' : 'updated'} successfully.`);
+
+                return Respond(res, evt.data.id, `handled`);
             }
+
+            if (evt.type === 'user.deleted') {
+                await UserService.delete(clerkId);
+                await markEventProcessed(eventId, evt.type);
+                return Respond(res, clerkId, `as successfully deleted!`);
+            }
+
             return res.status(200).json({
-                status: 'success',
-                message: 'Webhook received successfully.',
+                status: 'ignored',
+                message: `Event ${evt.type} not handled.`,
             });
         } catch (e) {
             logger.error(e.message ?? `Error verifying webhook: ${e}`, {label: 'Clerk Webhook'});

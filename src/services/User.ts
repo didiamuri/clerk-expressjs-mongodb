@@ -1,90 +1,71 @@
-import User from "@src/models/User";
-import {UserJSON} from "@clerk/backend";
 import logger from "@src/utils/logger";
+import {User} from "@src/models";
+import {UserJSON} from "@clerk/express";
+import {UserMapper} from "@src/mappers/UserMapper";
 
 export class UserService {
-  static async store(data: UserJSON, accountId: string, role?: string) {
+    static async store(data: UserJSON, accountId: string, role: string) {
         try {
-            const email = data.email_addresses[0]?.email_address;
-            if (!email) throw new Error("Email is required");
+            // Check if user with this email already exists
+            const existingUser = await User.findOne({email: data.email_addresses[0]?.email_address});
 
-            const mapped = this.mapper(data);
-            const existingUser = await User.findOne({ email });
+            const userData = UserMapper.mapFromClerk(data, accountId, role);
 
             if (existingUser) {
-                Object.assign(existingUser, {...mapped, accountId, role: role ?? mapped.role});
-                await existingUser.save();
-                logger.info(`User with email ${email} updated from Clerk`, { label: 'Clerk Webhook' });
-                return existingUser;
-            } else {
-                const newUser = new User({...mapped, accountId, role: role ?? mapped.role, deleteSelfEnabled: false, createOrganizationEnabled: false});
-                await newUser.save();
-                logger.info(`New user created from Clerk`, { label: 'Clerk Webhook' });
-                return newUser;
+                logger.info(`User [${existingUser._id.toString()}] updated instead of created (email already existed)`);
+                return await User.findOneAndUpdate(
+                    {email: existingUser.email},
+                    {...userData, status: 'active'},
+                    {new: true}
+                );
             }
+
+            const newUser = new User(userData);
+            logger.info(`New user [${newUser._id.toString()}] created with Clerk ID: ${newUser.cId}`);
+            return await newUser.save();
         } catch (error) {
-            logger.error(error.message ?? 'Error while to store user to MongoDb', {label: 'Clerk Webhook'});
-            throw 'Error while to store user to MongoDb';
+            logger.error(error?.message ?? 'Error while storing user to MongoDB', {label: 'UserService'});
+            throw new Error('Failed to store user to MongoDB');
         }
     }
 
-    static async update(data: UserJSON, accountId: string, role?: string) {
+    static async update(data: UserJSON, accountId: string, role: string) {
         try {
-            const mapped = this.mapper(data);
-            let user = await User.findOne({ cId: data.id });
+            const userData = UserMapper.mapFromClerk(data, accountId, role);
 
-            if (!user) {
-                user = new User({...mapped, accountId, role: role ?? mapped.role, deleteSelfEnabled: false, createOrganizationEnabled: false});
-                await user.save();
-                logger.info(`User not found by Clerk ID; created instead`, { label: 'Clerk Webhook' });
-            } else {
-                Object.assign(user, {...mapped, accountId: accountId ?? user.accountId, role: role ?? user.role});
-                await user.save();
-                logger.info(`User updated from Clerk`, { label: 'Clerk Webhook' });
+            const updatedUser = await User.findOneAndUpdate(
+                {cId: data.id},
+                {$set: userData},
+                {upsert: true, new: true}
+            );
+
+            logger.info(`User [${updatedUser._id.toString()}] updated with Clerk ID: ${data.id}`);
+
+            return updatedUser;
+        } catch (error) {
+            logger.error(error?.message ?? 'Error while updating user in MongoDB', {label: 'UserService'});
+            throw new Error('Failed to update user in MongoDB');
+        }
+    }
+
+    static async delete(clerkId: string) {
+        try {
+            const deletedUser = await User.findOneAndUpdate(
+                {cId: clerkId},
+                {$set: {status: 'deleted', deletedAt: new Date()}},
+                {new: true}
+            );
+
+            if (!deletedUser) {
+                logger.warn(`User with Clerk ID: ${clerkId} not found for deletion.`);
+                return null;
             }
-            return user;
-        } catch (e) {
-            logger.error(e.message ?? 'Error while updating user in MongoDB', { label: 'Clerk Webhook' });
-            throw new Error(`Error while updating user in MongoDB`);
+
+            logger.info(`User [${deletedUser._id}] marked as deleted.`);
+            return deletedUser;
+        } catch (error) {
+            logger.error(error?.message ?? 'Error while deleting user', {label: 'UserService'});
+            throw new Error('Failed to delete user from MongoDB');
         }
-    }
-
-    static async delete(id: string) {
-        try {
-            const user = await User.findOne({ cId: id });
-            if (!user) throw new Error(`User with Clerk ID ${id} not found`);
-
-            user.status = "deleted";
-            await user.save();
-            logger.info(`User ${id} marked as deleted`, { label: 'Clerk Webhook' });
-            return user;
-        } catch (error: any) {
-            logger.error(error.message ?? 'Error while soft-deleting user in MongoDB', { label: 'Clerk Webhook' });
-            throw new Error(`Error while soft-deleting user in MongoDB`);
-        }
-    }
-
-    private static mapper(data: UserJSON) {
-        const status = data.locked ? "locked" : data.banned ? "banned" : "active";
-        return {
-            cId: data.id,
-            firstName: data.first_name,
-            lastName: data.last_name,
-            email: data.email_addresses[0]?.email_address,
-            phoneNumber: data.phone_numbers[0]?.phone_number,
-            role: data.public_metadata?.role as string,
-            emailVerificationStatus: data.email_addresses[0]?.verification.status,
-            emailVerificationStrategy: data.email_addresses[0]?.verification.strategy,
-            phoneNumberVerificationStatus: data.phone_numbers[0]?.verification.status,
-            phoneNumberVerificationStrategy: data.phone_numbers[0]?.verification.strategy,
-            imageUrl: data.image_url,
-            passwordEnabled: data.password_enabled,
-            twoFactorEnabled: data.two_factor_enabled,
-            backupCodeEnabled: data.backup_code_enabled,
-            legalAcceptedAt: data.legal_accepted_at !== null ? new Date(data.legal_accepted_at).getTime() : data.legal_accepted_at,
-            lastActiveAt: data.last_active_at !== null ? new Date(data.last_active_at).toISOString() : data.last_active_at,
-            lastSignInAt: data.last_sign_in_at !== null ? new Date(data.last_sign_in_at).toISOString() : data.last_sign_in_at,
-            status,
-        };
     }
 }

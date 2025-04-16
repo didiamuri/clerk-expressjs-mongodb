@@ -1,5 +1,6 @@
-import Role from "@src/models/Role";
-import User from "@src/models/User";
+import Role from "./Role";
+import User from "./User";
+import WebhookLog from "./WebhookLog";
 
 export const initCollections = async () => {
     await Promise.all([
@@ -8,7 +9,8 @@ export const initCollections = async () => {
     ]);
 };
 
-export default {
+export {
     Role,
-    User
+    User,
+    WebhookLog
 };
