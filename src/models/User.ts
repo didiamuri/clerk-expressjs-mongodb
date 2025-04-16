@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {User} from "@src/types/User";
+import {User} from "@src/types";
 
 const schema = new mongoose.Schema<User>({
     cId: {type: String, required: true, index: true, unique: true},
