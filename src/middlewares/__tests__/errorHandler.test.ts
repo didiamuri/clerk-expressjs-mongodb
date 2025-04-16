@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import errorHandler from '@src/middlewares/errorHandler';
+import {errorHandler} from '@src/middlewares';
 import { unauthorizedErrorMessage } from '@src/utils/messages';
 import { Locale } from '@src/utils';
 

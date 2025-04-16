@@ -1,16 +1,9 @@
 // jest.config.mjs
 export default {
-    roots: ['<rootDir>/src', '<rootDir>/tests'],
-    testMatch: [
-        '**/__tests__/**/*.+(ts|tsx|js)',
-        '**/?(*.)+(spec|test).+(ts|tsx|js)',
-    ],
-    transform: {
-        '^.+\\.ts$': 'ts-jest',
-    },
+    preset: 'ts-jest',
     testEnvironment: 'node',
-    verbose: true,
+    moduleDirectories: ['node_modules', '<rootDir>/src'],
     moduleNameMapper: {
-        '^@src/(.*)$': '<rootDir>/src/$1',
-    },
+        '@src/(.*)': '<rootDir>/src/$1'
+    }
 };
