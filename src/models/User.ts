@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import {User} from "@src/types";
+import {IUser} from "@src/types";
 
-const schema = new mongoose.Schema<User>({
+const schema = new mongoose.Schema<IUser>({
     cId: {type: String, required: true, index: true, unique: true},
     accountId: {type: String, required: true, index: true, unique: true},
     firstName: {type: String, required: true, index: true},
@@ -30,4 +30,4 @@ const schema = new mongoose.Schema<User>({
 schema.index({createdAt: 1, updatedAt: 1});
 schema.set("toJSON", { virtuals: false, versionKey: false });
 
-export default mongoose.model<User>("User", schema);
+export default mongoose.model<IUser>("User", schema);

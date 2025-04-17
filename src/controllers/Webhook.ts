@@ -1,5 +1,5 @@
 import logger from "@src/utils/logger";
-import {HttpContext} from "@src/types/HttpContext";
+import {IHttpContext} from "@src/types";
 import {verifyWebhook} from "@clerk/express/webhooks";
 import {generateAccountId} from "@src/utils/generateUniqueAccountId";
 import {UserService} from "@src/services/User";
@@ -9,7 +9,7 @@ import {AppError, generateEventId, isDuplicateEvent, markEventProcessed, Respond
 import * as process from "node:process";
 
 export class WebhookController {
-    async user({req, res, next}: HttpContext) {
+    async user({req, res, next}: IHttpContext) {
         try {
             const evt = await verifyWebhook(req);
             const eventId = generateEventId(evt);
@@ -63,7 +63,7 @@ export class WebhookController {
         }
     }
 
-    async role({req, res, next}: HttpContext) {
+    async role({req, res, next}: IHttpContext) {
         try {
             const evt = await verifyWebhook(req, {
                 signingSecret: process.env.CLERK_WEBHOOK_SIGNING_SECRET_ROLE

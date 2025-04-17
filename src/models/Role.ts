@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import {Role} from "@src/types";
+import {IRole} from "@src/types";
 
-const schema = new mongoose.Schema<Role>({
+const schema = new mongoose.Schema<IRole>({
     name: {type: String, required: true},
     key: {type: String, required: true},
     permissions: [{type: String, required: true}],
@@ -13,4 +13,4 @@ schema.index({name: 1, key: 1});
 
 schema.set("toJSON", { virtuals: false, versionKey: false });
 
-export default mongoose.model<Role>("Role", schema);
+export default mongoose.model<IRole>("Role", schema);

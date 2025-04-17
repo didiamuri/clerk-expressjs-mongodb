@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@clerk/backend':
-        specifier: ^1.28.0
-        version: 1.28.0(react@19.1.0)(svix@1.64.0)
       '@clerk/express':
         specifier: ^1.4.4
         version: 1.4.4(express@5.1.0)(react@19.1.0)(svix@1.64.0)

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import {WebhookLog} from "@src/types";
+import {IWebhookLog} from "@src/types";
 
-const schema = new mongoose.Schema<WebhookLog>({
+const schema = new mongoose.Schema<IWebhookLog>({
         eventId: { type: String, index: true, unique: true, required: true },
         eventType: { type: String, required: true },
         status: { type: String, enum: ['processed', 'failed'], default: 'processed' },
@@ -12,4 +12,4 @@ const schema = new mongoose.Schema<WebhookLog>({
 
 schema.set("toJSON", { virtuals: false, versionKey: false });
 
-export default mongoose.model<WebhookLog>('WebhookLog', schema, 'webhook_logs');
+export default mongoose.model<IWebhookLog>('WebhookLog', schema, 'webhook_logs');
